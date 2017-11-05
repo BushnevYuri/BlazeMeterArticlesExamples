@@ -1,4 +1,6 @@
 import re
+import datetime
+import json
 from locust import HttpLocust, TaskSet, task
 from lxml import html
 
@@ -32,12 +34,23 @@ class BrowseDocumentation(TaskSet):
     @task
     def index_page_with_response_code_assertion(self):
         r = self.client.get("/")
-        assert r.status_codes is 200, "Unexpected response code: " + r.status_code
+        assert r.status_code is 200, "Unexpected response code: " + r.status_code
 
     @task
     def index_page_with_response_header_assertion(self):
         r = self.client.get("/")
         assert r.headers['Connection'] == 'keep-alive', "Unexpected connection header: " + r.headers['Connection']
+
+    @task
+    def index_page_with_response_duration_assertion(self):
+        r = self.client.get("/")
+        assert r.elapsed < datetime.timedelta(minutes = 1), "Request took more than 1 second"
+
+    @task
+    def index_page_with_json_assertion(self):
+        r = self.client.get("https://jsonplaceholder.typicode.com/posts/1")
+        json_response = json.loads(r.text)
+        assert json_response['userId'] is 1
 
 class AwesomeUser(HttpLocust):
     task_set = BrowseDocumentation
