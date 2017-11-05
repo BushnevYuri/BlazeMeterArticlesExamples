@@ -29,6 +29,16 @@ class BrowseDocumentation(TaskSet):
         assert tree.cssselect(self.HOME_PAGE_TITLE_CSS)[0].text == "Welcome to the Simple Travel Agency!", \
             "Expected title has not been found!"
 
+    @task
+    def index_page_with_response_code_assertion(self):
+        r = self.client.get("/")
+        assert r.status_codes is 200, "Unexpected response code: " + r.status_code
+
+    @task
+    def index_page_with_response_header_assertion(self):
+        r = self.client.get("/")
+        assert r.headers['Connection'] == 'keep-alive', "Unexpected connection header: " + r.headers['Connection']
+
 class AwesomeUser(HttpLocust):
     task_set = BrowseDocumentation
     host = "http://blazedemo.com"
