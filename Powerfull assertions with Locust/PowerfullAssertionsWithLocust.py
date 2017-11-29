@@ -44,7 +44,7 @@ class BrowseDocumentation(TaskSet):
     @task
     def index_page_with_response_duration_assertion(self):
         r = self.client.get("/")
-        assert r.elapsed < datetime.timedelta(minutes = 1), "Request took more than 1 second"
+        assert r.elapsed < datetime.timedelta(seconds = 1), "Request took more than 1 second"
 
     @task
     def index_page_with_json_assertion(self):
