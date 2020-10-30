@@ -1,33 +1,40 @@
-from locust import HttpLocust, TaskSet, task
+import time
+import random
 import logging, sys
 import csv
+from locust import HttpUser, TaskSet, task, between
 
+# Global variable to load test data from csv
 USER_CREDENTIALS = None
 
-class LoginWithUniqueUsersSteps(TaskSet):
-    email = "NOT_FOUND"
-    password = "NOT_FOUND"
-
-    def on_start(self):
-            if len(USER_CREDENTIALS) > 0:
-                self.email, self.password = USER_CREDENTIALS.pop()
+class QuickstartUser(HttpUser):
+    wait_time = between(1, 2)
+    host = "http://www.microsoft.com"
 
     @task
-    def login(self):
-        self.client.post("/login", {
-            'email': self.email, 'passowrd': self.password
-        })
-        logging.info('Login with %s email and %s password', self.email, self.password)
+    def main_page(self):
+        self.client.get("/")
+        
+        # Check Mobile number to use for login
+        if (self.mobile == "NO_MORE_USER"):
+            print("NO MORE MOBILE")
+        else:
+            print("Mobile number: ", self.mobile, " otp: ", self.otp )
+        self.stop()
 
-class LoginWithUniqueUsersTest(HttpLocust):
-    task_set = LoginWithUniqueUsersSteps
-    host = "http://blazedemo.com"
-    sock = None
-
-    def __init__(self):
-        super(LoginWithUniqueUsersTest, self).__init__()
+    def on_start(self):
         global USER_CREDENTIALS
+
+        # Load test data from csv file
         if (USER_CREDENTIALS == None):
-            with open('credentials.csv', 'rb') as f:
+            print("open file")
+            with open('credentials.csv', 'r') as f:
                 reader = csv.reader(f)
                 USER_CREDENTIALS = list(reader)
+        
+        # Load top record from dataset and mark for processed
+        if len(USER_CREDENTIALS) > 0:
+            self.mobile, self.otp = USER_CREDENTIALS.pop()
+        else:
+            self.mobile = "NO_MORE_MOBILE"
+            self.otp = "N/A"

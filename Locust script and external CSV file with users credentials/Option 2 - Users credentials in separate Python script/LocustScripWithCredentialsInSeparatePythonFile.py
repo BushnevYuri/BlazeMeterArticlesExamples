@@ -1,26 +1,23 @@
-from locust import HttpLocust, TaskSet, task
-import logging, sys
 from credentials import *
+from locust import HttpUser, TaskSet, task, between
 
-class LoginWithUniqueUsersSteps(TaskSet):
-    email = "NOT_FOUND"
-    password = "NOT_FOUND"
-
-    def on_start(self):
-            if len(USER_CREDENTIALS) > 0:
-                self.email, self.password = USER_CREDENTIALS.pop()
+class QuickstartUser(HttpUser):
+    wait_time = between(1, 2)
+    host = "http://www.microsoft.com"
 
     @task
-    def login(self):
-        self.client.post("/login", {
-            'email': self.email, 'passowrd': self.password
-        })
-        logging.info('Login with %s email and %s password', self.email, self.password)
+    def main_page(self):
+        self.client.get("/")
+        #print("task created.")
+        
+        print("login by: ", self.email, " password: ", self.password )
+        self.stop()
 
-class LoginWithUniqueUsersTest(HttpLocust):
-    task_set = LoginWithUniqueUsersSteps
-    host = "http://blazedemo.com"
-    sock = None
 
-    def __init__(self):
-        super(LoginWithUniqueUsersTest, self).__init__()
+    def on_start(self):
+        #print("Job started")
+        if len(USER_CREDENTIALS) > 0:
+            self.email, self.password = USER_CREDENTIALS.pop()
+        else:
+            self.email = "NO_MORE_USER"
+            self.password = "N/A"
